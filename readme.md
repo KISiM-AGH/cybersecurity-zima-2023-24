@@ -22,7 +22,7 @@ Wykonali:
 ### SQL Injection
 
 **[CRITICAL]**
-```
+```js
 function do_auth(username, password) {
     var db = pgp(config.db.connectionString);
 
@@ -43,7 +43,7 @@ Zabezpieczenie przed atakami SQL Injection:
 ### Broken Authentication and Session Management
 
 **[HIGH]**
-```
+```js
 // Do auth
 router.post('/login/auth', function(req, res) {
 
@@ -81,7 +81,7 @@ Potencjalne problemy wynikające z takiego mechanizmu uwierzytelniania:
 ### Dane logowania do bazy danych w kodzie źródłowym
 
 **[HIGH]**
-```
+```yaml
 version: '3.9'
 services:
   vulnerable_node:
@@ -108,7 +108,7 @@ Powinny być one przechowywane w zmiennych środowiskowych, najlepiej w pliku .e
 
 **[HIGH]**
 #### JavaScript
-```
+```js
 // Login template
 router.get('/login', function(req, res, next) {
 
@@ -118,7 +118,7 @@ router.get('/login', function(req, res, next) {
 });
 ```
 #### HTML
-```
+```html
 ...
 <% if (auth_error != undefined) { %>
     <span class="label label-danger"><%-auth_error%></span>
@@ -142,7 +142,7 @@ Jak zabezpieczyć się przed atakami XSS?
 ### Konfiguracja cookies
 
 **[HIGH]**
-```
+```js
 app.use(session({
   secret: 'ñasddfilhpaf78h78032h780g780fg780asg780dsbovncubuyvqy',
   cookie: {
