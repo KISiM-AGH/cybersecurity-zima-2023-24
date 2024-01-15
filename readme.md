@@ -12,7 +12,7 @@ Wykonali:
 - [HIGH] - podatność wysokiego poziomu, która może doprowadzić do przejęcia aplikacji.
 - [MEDIUM] - podatność średniego poziomu, która może doprowadzić do przejęcia konta użytkownika.
 - [LOW] - podatność niskiego poziomu, która może doprowadzić do przejęcia konta użytkownika.
-- [INFO] - podatność informacyjna, która może doprowadzić do ujawnienia informacji.
+- [INFO] - informacja o podatności, która nie może doprowadzić do przejęcia aplikacji.
   
 ## Podsumowanie wykonanych prac
 ## Wnioski
@@ -141,7 +141,7 @@ Jak zabezpieczyć się przed atakami XSS?
   
 ### Konfiguracja cookies
 
-**[HIGH]**
+**[MEDIUM]**
 ```js
 app.use(session({
   secret: 'ñasddfilhpaf78h78032h780g780fg780asg780dsbovncubuyvqy',
