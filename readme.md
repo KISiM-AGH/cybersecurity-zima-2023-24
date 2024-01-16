@@ -236,3 +236,102 @@ Analizując powyższe zapytanie do bazy danych nasuwający się wniosek to brak 
 
 Aby rozwiązać tę podatność, należy zmienić schemat tabeli użytkowników w bazie danych. Powinno się kolumnę `password` zastąpić dwiema kolumnami `passwordHash` i `passwordSalt`, które będą przechowywać zaszyfrowane hasło dostępu.
 
+### Unvalidated Redirects and Forwards
+
+**[HIGH]**
+
+```js
+function check_logged(req, res) {
+
+    if (req.session.logged == undefined || req.session.logged == false)
+    {
+        res.redirect("/login?returnurl=" + req.url);
+    }
+}
+```
+
+
+Powyższy fragment kodu jest podatny na atak, ponieważ nie zastosowano walidacji ani dodatkowych metod kontroli, w  celu zweryfikowania pewności adresu URL. Luka ta może zostać wykorzystana jako część oszustwa phishingowego poprzez przekierowanie użytkowników na złośliwą stronę.
+
+Co należy zrobić  by eliminoc tą podatnosc:
+
+- unikać używania przekierowań
+- jeśli użyte zostało przekierowanie, należy nie zezwalać na adres URL jako dane wejściowe użytkownika do miejsca docelowego
+- użytkownik powinien podać identyfikator lub token, który jest mapowany po stronie serwera na docelowy adres URL
+
+
+### CSRF
+
+**[HIGH]**
+
+```js
+router.all('/products/buy', function(req, res, next) {
+
+    check_logged(req, res);
+
+    var params = null;
+    if (req.method == "GET"){
+        params = url.parse(req.url, true).query;
+    } else {
+        params = req.body;
+    }
+
+    var cart = null;
+
+    try {
+
+        if (params.price == undefined){
+            throw new Error("Missing parameter 'price'");
+        }
+
+        cart = {
+            mail: params.mail,
+            address: params.address,
+            ship_date: params.ship_date,
+            phone: params.phone,
+            product_id: params.product_id,
+            product_name: params.product_name,
+            username: req.session.user_name,
+            price: params.price.substr(0, params.price.length - 1) // remove "€" symbol
+        }
+
+        // Check mail format
+        var re = /^([a-zA-Z0-9])(([\-.]|[_]+)?([a-zA-Z0-9]+))*(@){1}[a-z0-9]+[.]{1}(([a-z]{2,3})|([a-z]{2,3}[.]{1}[a-z]{2,3}))$/
+        if (!re.test(cart.mail)){
+            throw new Error("Invalid mail format");
+        }
+
+        // Checks all values is set
+        for (var prop in cart){
+            if (cart[prop] == undefined){
+                throw new Error("Missing parameter '" + prop + "'");
+            }
+        }
+
+    }
+    catch (err){
+        return res.status(400).json({message: err.message});
+    }
+
+    db_products.purchase(cart)
+        .catch(function (err) {
+
+            console.log(err);
+
+            return res.json({message: "Product purchased correctly"});
+        });
+
+});
+
+```
+
+Uzytkownik jest w stanie utworzyć żądanie, które spowoduje zakupienie produktu z konta admina. Atak ma na celu skłonienie użytkownika zalogowanego do serwisu internetowego, aby uruchomił on odnośnik,którego otwarcie w ykona w owym serwisie akcję, do której atakujący nie miałby przeciwnym razie dostępu.
+
+Metody ochrony przed CSRF:
+
+- użycie losowych tokenów, związanych z zalogowaną sesja, sprawi, ze strona obsługująca formularz musi sprawdzić czy przekazany token to rzeczywiście jest wartość, która została generowana przez aplikacje
+- użycie gotowych bibliotek, które mają możliwość ochrony
+- użycie metody polegającej na wysyłaniu przez przeglądarkę użytkownika ten samej – losowo wygenerowanej przez aplikację wartości za pomocą: requestu HTTP oraz ciasteczka. Serwer sprawdza czy wartość zapisana w ciastku i wysłana danym requeście http jest taka sama.
+
+
+
