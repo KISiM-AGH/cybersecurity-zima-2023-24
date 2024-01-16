@@ -7,17 +7,33 @@ Wykonali:
 - Stanisław Marek
 - Aleksander Kuliński
 
-### poziomy podatności
+### Poziomy podatności
 - [CRITICAL] - podatność krytyczna, która może doprowadzić do całkowitego przejęcia aplikacji.
 - [HIGH] - podatność wysokiego poziomu, która może doprowadzić do przejęcia aplikacji.
 - [MEDIUM] - podatność średniego poziomu, która może doprowadzić do przejęcia konta użytkownika.
 - [LOW] - podatność niskiego poziomu, która może doprowadzić do przejęcia konta użytkownika.
 - [INFO] - informacja o podatności, która nie może doprowadzić do przejęcia aplikacji.
-  
-## Podsumowanie wykonanych prac
-## Wnioski
-## Zalecenia
 ## Opis aplikacji
+Audytowana aplikacja to prosty system do składania zamówień z dostępnych w bazie produktów.
+
+Aplikacja posiada funkcjonalności:
+- logowania / autentykacji użytkowników
+- przeglądania dostępnych produktów
+- składania zamówień
+
+Kod źródłowy aplikacji dostępny jest w publicznym repozytorium: https://github.com/cr0hn/vulnerable-node
+
+W repozytorium można znaleźć wylistowane podatności, które nie są jednak sprecyzowane gdzie się znajdują
+## Podsumowanie wykonanych prac
+Na podstawie dostępnego kodu wykonany został jego audyt, na podstawie którego zostały znalezione podatności na ataki i luki w bezpieczeństwie.
+
+Każa ze znalezionych podatności została opisana. Opis zawiera:
+- poziom podatności
+- wyjaśnienie dlaczego jest to podatność i czym grozi
+- propozycja rozwiązania problemu 
+
+Po wykonaniu audytu zaproponowane zostały rozwiązania znalezionych błędów
+
 ## Znalezione podatności
 ### SQL Injection
 
@@ -39,6 +55,44 @@ Zabezpieczenie przed atakami SQL Injection:
 - Używanie parametryzowanych zapytań.
 - Używanie bibliotek, które automatycznie zabezpieczają przed atakami SQL Injection.
 - Filtracja i walidacja danych wprowadzanych przez użytkownika.
+
+Poza wyżej wspomnianym SQL Injection napotkać można je również w innych miejscach:
+```js
+function getProduct(product_id) {
+
+    var q = "SELECT * FROM products WHERE id = '" + product_id + "';";
+
+    return db.one(q);
+}
+```
+```js
+function search(query) {
+
+    var q = "SELECT * FROM products WHERE name ILIKE '%" + query + "%' OR description ILIKE '%" + query + "%';";
+
+    return db.many(q);
+
+}
+```
+```js
+function purchase(cart) {
+
+    var q = "INSERT INTO purchases(mail, product_name, user_name, product_id, address, phone, ship_date, price) VALUES('" +
+            cart.mail + "', '" +
+            cart.product_name + "', '" +
+            cart.username + "', '" +
+            cart.product_id + "', '" +
+            cart.address + "', '" +
+            cart.ship_date + "', '" +
+            cart.phone + "', '" +
+            cart.price +
+            "');";
+
+    return db.one(q);
+
+}
+```
+
 
 ### Broken Authentication and Session Management
 
@@ -157,3 +211,28 @@ W konfiguracji ciasteczek sesji znajdują się następujące problemy:
 - Brak flagi secure - ciasteczka są wysyłane przez protokół HTTP, co może doprowadzić do ich przechwycenia.
 - Bardzo długi czas wygaśnięcia ciasteczek sesji - sesja pozostanie aktywna do momentu wylogowania się użytkownika.
 - Sekret sesji zaszyty jest w kodzie źródłowym aplikacji - powinien być przechowywany w zmiennych środowiskowych, najlepiej w pliku .env, który nie jest wersjonowany i/lub w repozytorium.
+
+### Skan paczek NPM
+**[CRITICAL]**
+
+Po wykonaniu `npm audit` wynik wskazuje na wykorzystanie znaczącej ilości podatnych paczek:
+- 3 średnie
+- 12 wysokich
+- 5 krytycznych
+
+![Alt text](assets/Screenshot_20240116_195857.png)
+
+Należy zaktualizować paczki, bądź znaleźć alternatywną bibliotekę jeżeli wydawca nie udostępnił do tego czasu poprawionej wersji. Jeżeli nie ma żadnych alternatyw oraz popzednie wersje również zawierają podatności należy wykluczyć funkcjonalność, która wykorzystuje podatne pakiety.
+Alternatywą może być napisanie własnego pakietu, który będzie spełniał standardy.
+
+### Insecure Databse Design
+**[HIGH]**
+
+Hasła użytkowników trzymane w bazie są w formie plain textu bez szyfrowania
+```js
+var q = "SELECT * FROM users WHERE name = '" + username + "' AND password ='" + password + "';";
+```
+Analizując powyższe zapytanie do bazy danych nasuwający się wniosek to brak szyfrowania. Credentials użytkowników przechowywyane są jako zwykły tekst. W przypadku hasła jest to poważny błąd i może prowadzić do łatwego przejęcia dostępów dla użytkowników.
+
+Aby rozwiązać tę podatność, należy zmienić schemat tabeli użytkowników w bazie danych. Powinno się kolumnę `password` zastąpić dwiema kolumnami `passwordHash` i `passwordSalt`, które będą przechowywać zaszyfrowane hasło dostępu.
+
