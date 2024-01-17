@@ -262,7 +262,7 @@ Co należy zrobić  by eliminoc tą podatnosc:
 
 ### CSRF
 
-**[HIGH]**
+**[CRITICAL]**
 
 ```js
 router.all('/products/buy', function(req, res, next) {
