@@ -27,7 +27,7 @@ W repozytorium można znaleźć wylistowane podatności, które nie są jednak s
 ## Podsumowanie wykonanych prac
 Na podstawie dostępnego kodu wykonany został jego audyt, na podstawie którego zostały znalezione podatności na ataki i luki w bezpieczeństwie.
 
-Każa ze znalezionych podatności została opisana. Opis zawiera:
+Każda ze znalezionych podatności została opisana. Opis zawiera:
 - poziom podatności
 - wyjaśnienie dlaczego jest to podatność i czym grozi
 - propozycja rozwiązania problemu 
@@ -325,7 +325,7 @@ router.all('/products/buy', function(req, res, next) {
 
 ```
 
-Uzytkownik jest w stanie utworzyć żądanie, które spowoduje zakupienie produktu z konta admina. Atak ma na celu skłonienie użytkownika zalogowanego do serwisu internetowego, aby uruchomił on odnośnik,którego otwarcie w ykona w owym serwisie akcję, do której atakujący nie miałby przeciwnym razie dostępu.
+Uzytkownik jest w stanie utworzyć żądanie, które spowoduje zakupienie produktu z konta admina. Atak ma na celu skłonienie użytkownika zalogowanego do serwisu internetowego, aby uruchomił on odnośnik, którego otwarcie wykona w tym serwisie akcję, do której atakujący nie miałby przeciwnym razie dostępu.
 
 Metody ochrony przed CSRF:
 
